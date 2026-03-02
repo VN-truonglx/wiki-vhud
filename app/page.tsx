@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import PostImage from "@/components/PostImage";
+import { getServerSession } from "next-auth"; // Thêm để lấy session
+import { authOptions } from "app/api/auth/[...nextauth]/route";
 
 // 1. Thêm tham số searchParams vào hàm Home
 export default async function Home({
@@ -9,18 +11,38 @@ export default async function Home({
   searchParams: Promise<{ q?: string }>;
 }) {
 
-  // 2. GIẢI PHÁP: Phải có dòng await này trước khi dùng .q
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || "";
+
+  // 1. Lấy phiên đăng nhập phía Server
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session;
 
   // 3. Truy vấn Prisma (giữ nguyên logic search)
   const posts = await prisma.post.findMany({
     where: {
-      OR: [
-        { title: { contains: query } },
-        { content: { contains: query } },
-        { hashtag: { contains: query } },
+      deletedAt: null,
+      AND: [
+        {
+          OR: [
+            { title: { contains: query } },
+            { content: { contains: query } },
+            { hashtag: { contains: query } },
+          ],
+        },
+        {
+          OR: [
+            { access: "PUBLIC" }, // Luôn hiển thị bài Public
+            ...(isLoggedIn ? [{ access: "INTERNAL" }] : []), // Chỉ hiện bài Internal nếu đã đăng nhập
+            //Nếu thêm role ADMIN và muốn bài ADMIN chỉ ADMIN thấy:
+            // ...(session?.user?.role === "ADMIN" ? [{ access: "ADMIN" }] : []),
+          ],
+        },
       ],
+
+    },
+    include: {
+      author: true
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -64,7 +86,7 @@ export default async function Home({
 
                 {/* 1. Thumbnail Area */}
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  <PostImage src={post.thumbnail} title={post.title}/>
+                  <PostImage src={post.thumbnail} title={post.title} />
                   {/* Overlay Gradient nhẹ để text hashtag nổi bật nếu cần */}
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
@@ -93,7 +115,7 @@ export default async function Home({
 
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-slate-700 leading-none mb-1">
-                        {post.author}
+                        {post.author?.name || "Ban VHUD"}
                       </span>
                       <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                         {new Date(post.createdAt).toLocaleDateString('vi-VN', {

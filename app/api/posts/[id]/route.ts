@@ -1,6 +1,8 @@
 // app/api/posts/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "app/api/auth/[...nextauth]/route";
 
 export async function GET(
     request: Request,
@@ -30,8 +32,37 @@ export async function GET(
     } catch (err) {
         console.error("❌ API Error [GET /api/posts/[id]]:", err); /*Lỗi cụ thể hiển thị trên Terminal */
         return NextResponse.json(
-            {error: "Lỗi Server"},
+            { error: "Lỗi Server" },
             { status: 500 }
         );
-    }    
+    }
+}
+
+export async function DELETE(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    const postId = parseInt(id);
+
+    const session = await getServerSession(authOptions);
+    if (isNaN(postId)) {
+        return NextResponse.json({ message: "ID không hợp lệ" }, { status: 400 });
+    }
+
+    if (!session || (session.user as any).role === "USER") {
+        return NextResponse.json({ message: "Không có quyền" }, { status: 403 });
+    }
+
+
+    try {
+        await prisma.post.update({
+            where: { id: postId },
+            data: { deletedAt: new Date() }, // Lệnh xóa mềm
+        });
+        return NextResponse.json({ message: "Xóa thành công" });
+    } catch (error) {
+        console.error("Lỗi xóa bài:", error);
+        return NextResponse.json({ message: "Lỗi hệ thống" }, { status: 500 });
+    }
 }

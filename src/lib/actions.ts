@@ -9,13 +9,13 @@ export async function createPost(formData: FormData) {
   const content = formData.get("content") as string;
   const author = formData.get("author") as string;
   const hashtag = formData.get("hashtag") as string;
-  
+
   // 1. Lấy ảnh thumbnail từ input ẩn (nếu người dùng có upload riêng)
   let thumbnail = formData.get("thumbnailUrl") as string;
 
   // 2. Nếu ko chọn ảnh thumbnail riêng, tự quét lấy ảnh đầu tiên trong bài
   if (!thumbnail || thumbnail === "") {
-    thumbnail = getFirstImage(content) || "/default-thumbnail.png"; 
+    thumbnail = getFirstImage(content) || "/default-thumbnail.png";
   }
 
   try {
@@ -45,16 +45,16 @@ export async function updatePost(id: number, formData: FormData) {
     await prisma.post.update({
       where: { id: id },
       data: {
-        title,
-        author,
-        content,
-        thumbnail, // <-- Thêm dòng này để cập nhật thumbnail
-        hashtag,
+        title: title,
+        // author,
+        content: content,
+        thumbnail: thumbnail, 
+        hashtag: hashtag,
       },
     });
-  } catch (error) {
-    console.error("Lỗi cập nhật:", error);
-    throw new Error("Không thể lưu bài viết");
+  } catch (error: any) {
+    console.error("LỖI CHI TIẾT TẠI SERVER:", error.message); // Xem ở terminal
+    throw new Error(`❌Lỗi: ${error.message}`);
   }
   revalidatePath(`/post/${id}`);
   revalidatePath("/");
@@ -65,9 +65,9 @@ export async function updatePost(id: number, formData: FormData) {
 //hàm tiện ích để lấy ảnh đầu tiên trong nội dung bài viết (nếu có) làm thumbnail
 function getFirstImage(html: string): string | null {
   if (!html) return null;
-  
+
   // Regex mới: Tìm thẻ img, lấy nội dung trong src, không quan tâm cách đóng thẻ
   const match = html.match(/<img\s+[^>]*src=["']([^"']+)["']/i);
-  
+
   return match ? match[1] : null;
 }

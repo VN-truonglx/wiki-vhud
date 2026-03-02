@@ -1,20 +1,35 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
-import { LogIn, Mail, Lock } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import TunnelBearLogin from "@/components/tunnelbear/TunnelBearLogin";
 
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordFocus, setIsPasswordFocus] = useState(false);
 
+ 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Sau này bạn sẽ tích hợp logic NextAuth tại đây
-    console.log("Đăng nhập với:", { email, password });
-    alert("Tính năng đăng nhập đang được kết nối với Database!");
+    
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false, // Để mình tự xử lý chuyển trang
+    });
+
+    if (res?.error) {
+      setError("Email hoặc mật khẩu không chính xác!");
+      // Bạn có thể thêm hiệu ứng cho chú gấu lắc đầu ở đây
+    } else {
+      router.push("/"); // Đăng nhập xong về trang chủ
+      router.refresh();
+    }
   };
 
   return (
