@@ -6,10 +6,11 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 import ResizeImage from 'tiptap-extension-resize-image';
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   AlignLeft, AlignCenter, AlignJustify,
@@ -23,12 +24,15 @@ interface TiptapProps {
 }
 const TiptapEditor = ({ onChange, initialContent }: TiptapProps) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const isSettingContentRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   const editor = useEditor({
     extensions: [
       (ResizeImage as any).configure({
         HTMLAttributes: {
-          class: 'rounded-xl border-2 border-slate-100 shadow-lg my-4',
+          class: 'rounded-xl border-slate-100 shadow-lg',
         },
         allowResize: true,
       }),
@@ -45,8 +49,12 @@ const TiptapEditor = ({ onChange, initialContent }: TiptapProps) => {
     ],
     content: initialContent,
     immediatelyRender: false,
-    // 2. QUAN TRỌNG: Đưa onUpdate ra ngoài mảng extensions
-    onUpdate: ({ editor }) => {
+    // QUAN TRỌNG: Phân biệt user input vs programmatic changes
+    onUpdate: ({ editor, transaction }) => {
+      // Ngăn gọi onChange khi setContent được gọi
+      if (isSettingContentRef.current) return;
+
+      // Chỉ gọi onChange với user changes
       const html = editor.getHTML();
       onChange(html);
     },
@@ -60,11 +68,11 @@ const TiptapEditor = ({ onChange, initialContent }: TiptapProps) => {
           const parser = new DOMParser();
           const doc = parser.parseFromString(html, 'text/html');
           const img = doc.querySelector('img');
-          
+
           // Nếu là ảnh GIF
           if (img && img.src && /\.gif($|\?)/i.test(img.src)) {
             event.preventDefault();
-            
+
             // Thử fetch blob để upload (giữ animation)
             fetch(img.src)
               .then(res => res.blob())
@@ -110,11 +118,16 @@ const TiptapEditor = ({ onChange, initialContent }: TiptapProps) => {
       },
     },
   });
+  // Chỉ set initialContent khi editor khởi tạo lần đầu
   useEffect(() => {
-    if (editor && initialContent && editor.getHTML() !== initialContent) {
+    if (editor && initialContent && !hasInitializedRef.current) {
+      isSettingContentRef.current = true;
       editor.commands.setContent(initialContent);
+      isSettingContentRef.current = false;
+      hasInitializedRef.current = true;
     }
-  }, [initialContent, editor]);
+  }, [editor]);
+
   const uploadAndInsertImage = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -237,17 +250,54 @@ const TiptapEditor = ({ onChange, initialContent }: TiptapProps) => {
       </div>
 
       {/* EDITOR CONTENT */}
-      <div className={`p-4 min-h-[400px] transition-colors ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
+      <div
+        ref={editorContainerRef}
+        className={`p-4 min-h-[400px] transition-colors ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
+      >
         <EditorContent editor={editor} className="prose prose-slate max-w-none dark:prose-invert" />
       </div>
 
       <style jsx global>{`
-        .ProseMirror { min-height: 400px; padding: 20px; outline: none; }
-        .ProseMirror blockquote { border-left: 4px solid #f97316; padding-left: 1rem; font-style: italic; }
-        .ProseMirror ul[data-type="taskList"] { list-style: none; padding: 0; }
-        .ProseMirror li[data-type="taskItem"] { display: flex; align-items: flex-start; gap: 0.5rem; }
-        .ProseMirror code { background: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
-        .dark .ProseMirror code { background: #334155; }
+         .ProseMirror pre {
+          background-color: #0f172a !important;
+          color: #e2e8f0;
+          padding: 1rem !important;
+          border-radius: 0.75rem;
+          white-space: pre-wrap;
+          outline: none !important;
+        }
+        .ProseMirror:focus {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        }
+        .ProseMirror code {
+          background: none !important;
+          color: inherit !important;
+          padding: 0 !important;
+        }
+        
+        .tiptap .image-resizer {
+          display: inline-block; /* Quan trọng: Giúp khung chỉ to bằng nội dung */
+          line-height: 0;        /* Loại bỏ khoảng trống dòng chữ phía dưới ảnh */
+          vertical-align: middle;
+          margin-top: 0.5rem !important;    /* Giảm lề trên (mặc định thường là 2rem) */
+          margin-bottom: 0.5rem !important;    
+        } /* Ép ảnh bên trong không có lề phụ */
+        .tiptap .image-resizer img {
+          margin: 0 !important; 
+          display: block;
+          max-width: 100%;
+        }
+        /* Điều chỉnh khoảng cách của các handle (núm kéo) */
+        .tiptap .image-resizer__handler {
+          background-color: #f97316 !important;
+          border: 2px solid white !important;
+        }
+        .prose p {
+        margin-top: 0.75em;
+        margin-bottom: 0.75em;
+      }
       `}</style>
     </div>
   );

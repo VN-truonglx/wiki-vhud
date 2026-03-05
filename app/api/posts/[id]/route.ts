@@ -21,6 +21,11 @@ export async function GET(
         //3. tìm bài viết trong DB
         const post = await prisma.post.findUnique({
             where: { id: id },
+            include: {
+                author: {
+                    select: { name: true }
+                }
+            }
         });
 
         //4. kiểm tra bài viết có tồn tại không

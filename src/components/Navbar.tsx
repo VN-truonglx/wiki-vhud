@@ -32,10 +32,10 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`w-full z-40 bg-white border-b transition-all ${
+      <nav className={`w-full z-40 bg-white/10 border-b backdrop-blur-md transition-all ${
         isEditPage ? 'relative' : 'sticky top-0'
       }`}>
-        <div className="bg-white/50 backdrop-blur-md border-b border-blue-300">
+        <div className="bg-white/50 border-b border-blue-300">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">

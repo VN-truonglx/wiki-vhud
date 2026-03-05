@@ -50,7 +50,7 @@ export default async function Home({
   return (
     <main className="max-w-[1440px] mx-auto px-4 py-10">
       {/* Header Section */}
-      <section className="relative py-20 mb-12 text-center overflow-hidden">
+      <section className="relative py-12 mb-12 text-center overflow-hidden">
         {/* Điểm nhấn màu sắc mờ ảo phía sau */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-orange-50/50 to-transparent -z-10 rounded-full blur-3xl opacity-70"></div>
 
@@ -58,7 +58,7 @@ export default async function Home({
         <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
           Wiki <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-orange-500">VHUD</span>
         </h1>
-        <p className="text-slate-500 max-w-xl mx-auto text-lg leading-relaxed">
+        <p className="text-slate-500 max-w-xl mx-auto text-lg leading-relaxed py-3">
           Tổng hợp tất cả kiến thức vận hành các hệ thống tại EVF
         </p>
       </section>

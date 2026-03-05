@@ -3,15 +3,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPost } from "@/lib/actions";
 import TiptapEditor from "@/components/TiptapEditor";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react"; 
+import { useRouter } from "next/dist/client/components/navigation";
 
 type Access = "PUBLIC" | "INTERNAL";
 
 function PublishSplitButton({
   access,
   setAccess,
+  isSubmitting,
 }: {
   access: Access;
   setAccess: (v: Access) => void;
+  isSubmitting: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -40,14 +45,14 @@ function PublishSplitButton({
       <div ref={wrapRef} className="relative inline-flex items-stretch">
         {/* Tooltip */}
         <div
-          className="pointer-events-none absolute left-1/2 top-full z-30 mt-3 w-max -translate-x-1/2
-                     rounded-xl bg-slate-900 px-4 py-2 text-sm text-white opacity-0 shadow-lg
-                     transition group-hover:opacity-100"
+          className="pointer-events-none absolute left-0 bottom-full z-30 mb-3 w-max
+               rounded-xl bg-slate-900 px-4 py-2 text-sm text-white opacity-0 shadow-lg
+               transition group-hover:opacity-100"
           role="tooltip"
         >
           {tooltipText}
           <div
-            className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-900"
+            className="absolute -bottom-1 left-6 h-2 w-2 rotate-45 bg-slate-900"
             aria-hidden="true"
           />
         </div>
@@ -55,12 +60,13 @@ function PublishSplitButton({
         {/* Left: submit */}
         <button
           type="submit"
+          disabled={isSubmitting}
           className="rounded-l-full bg-orange-500 px-6 py-3 text-lg font-extrabold tracking-wide text-white
-                     shadow-md shadow-orange-200 transition
-                     hover:bg-orange-600 active:bg-orange-700
-                     focus:outline-none focus:ring-4 focus:ring-orange-200"
+               shadow-md shadow-orange-200 transition
+               hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-300
+               focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed"
         >
-          ĐĂNG BÀI
+          {isSubmitting ? "ĐANG TẢI..." : "ĐĂNG BÀI"}
         </button>
 
         <div className="w-px bg-white/40" aria-hidden="true" />
@@ -68,13 +74,14 @@ function PublishSplitButton({
         {/* Right: dropdown toggle */}
         <button
           type="button"
+          disabled={isSubmitting}
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
           className="grid w-13 place-items-center rounded-r-full bg-orange-500 text-white
                      shadow-md shadow-orange-200 transition
-                     hover:bg-orange-600 active:bg-orange-700
-                     focus:outline-none focus:ring-4 focus:ring-orange-200"
+                     hover:bg-orange-600 active:bg-orange-700 disabled:bg-orange-300
+                     focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed"
           title="Đổi chế độ hiển thị"
         >
           <svg
@@ -94,7 +101,7 @@ function PublishSplitButton({
         {/* Dropdown */}
         {open && (
           <div
-            className="absolute right-0 top-full z-40 mt-3 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+            className="absolute right-0 bottom-full z-40 mb-3 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
             role="menu"
           >
             <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -146,18 +153,53 @@ function PublishSplitButton({
 }
 
 export default function CreatePostPage() {
+  const { data: session } = useSession();
   const [content, setContent] = useState("");
   const [access, setAccess] = useState<Access>("PUBLIC");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const handleClientAction = async (formData: FormData) => {
+    setIsSubmitting(true);
     formData.set("content", content);
+    formData.set("access", access);
+
+    if (session?.user?.id) {
+      formData.set("authorId", session.user.id.toString());
+    }
 
     if (!content || content === "<p></p>") {
-      alert("⚠ Chưa có nội dung bài viết!");
+      toast.warning("Chưa có nội dung", {
+        description: "Vui lòng nhập nội dung bài viết",
+        style: { borderRadius: '1.5rem' },
+      });
       return;
     }
 
-    await createPost(formData);
+    try {
+      const result = await createPost(formData);
+
+      if (result?.success) {
+        // 1. Hiển thị thông báo thành công
+        toast.success("Đăng bài thành công!", {
+          description: "Bài viết của bạn đã được lưu vào hệ thống.",
+          style: { borderRadius: '0.5rem' },
+        });
+
+        // 2. Đợi 1.5 - 2 giây để người dùng kịp nhìn thông báo rồi mới chuyển trang
+        setTimeout(() => {
+          router.push("/");
+          router.refresh();
+        }, 1500);
+
+      } else {
+        toast.error("Lỗi: " + result?.error);
+      }
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra khi kết nối máy chủ");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -171,13 +213,16 @@ export default function CreatePostPage() {
           className="text-4xl font-black w-full outline-none placeholder:text-slate-200 text-slate-800"
         />
 
-        <input
-          type="text"
-          name="author"
-          placeholder="Tên người viết..."
-          required
-          className="w-full font-bold text-slate-500 outline-none"
-        />
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400 font-bold uppercase text-xs tracking-wider">Tác giả:</span>
+          <input
+            type="text"
+            name="author"
+            value={session?.user?.name || "Đang tải..."} // Lấy tên từ session
+            readOnly
+            className="font-bold text-blue-600 outline-none bg-transparent cursor-default"
+          />
+        </div>
 
         <input
           type="text"
@@ -192,7 +237,7 @@ export default function CreatePostPage() {
 
         {/* Split publish button */}
         <div className="pt-4 flex">
-          <PublishSplitButton access={access} setAccess={setAccess} />
+          <PublishSplitButton access={access} setAccess={setAccess} isSubmitting={isSubmitting} />
         </div>
       </form>
     </main>

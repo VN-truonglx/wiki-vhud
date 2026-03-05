@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import Providers from "@/components/Providers"; // Import Provider mới tạo
+import Providers from "@/components/Providers";
+import { Toaster } from 'sonner';
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -10,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VHUD",
+  title: "Wiki VHUD",
   description: "Wiki vận hành ứng dụng",
   icons: {
     icon: "/favicon.ico"
@@ -21,10 +22,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <body className={`${inter.className} bg-[#fffaf5] min-h-screen antialiased relative`}>
+
         {/* Bao bọc toàn bộ nội dung trong Providers */}
         <Providers>
           <Navbar />
-          
+          <Toaster
+            position="top-center"
+            expand={true}
+            richColors={true}
+            toastOptions={
+              {
+                style: {
+                  width: 'fit-content',
+                  borderRadius: '1.0rem',
+                  padding: '16px 20px',
+                  duration: 2500,
+                },
+              }
+            }
+          />
           <div
             className="fixed inset-0 z-[-1] pointer-events-none"
             style={{

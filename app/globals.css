@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -25,56 +29,196 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Tiptap Code Block Styles */
+/* Tiptap Code Block Styles - cả .prose và editor */
+pre,
 .prose pre {
-  background: #1e293b; /* Màu nền tối */
-  color: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  font-family: 'JetBrains Mono', monospace;
+  counter-reset: line-number;
+  position: relative;
+  background-color: #0f172a !important;
+  padding: 1rem 0 0 0 !important;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
+pre code,
 .prose pre code {
-  background: transparent;
-  padding: 0;
-  color: inherit;
-  font-size: 0.9rem;
+  display: block !important;
+  padding-bottom: 1rem !important;
+  padding-right: 1rem !important;
+  white-space: pre !important;
+  font-family: monospace !important;
+  min-width: max-content !important;
 }
 
-/* Màu sắc các thành phần code */
-.hljs-comment { color: #64748b; }
-.hljs-keyword { color: #f472b6; }
-.hljs-string { color: #4ade80; }
-.hljs-function { color: #60a5fa; }
+pre code .line,
+.prose pre code .line {
+  display: block !important;
+  padding-left: 3.5rem;
+  padding-right: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+  counter-increment: line-number;
+  min-height: 1.5rem;
+  white-space: pre !important;
+}
+
+pre code div.line,
+.prose pre code div.line {
+  display: block !important;
+  padding-left: 3.5rem;
+  padding-right: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+  counter-increment: line-number;
+  min-height: 1.5rem;
+  white-space: pre !important;
+}
+
+pre code .line::before,
+.prose pre code .line::before,
+pre code div.line::before,
+.prose pre code div.line::before {
+  content: counter(line-number);
+  position: absolute;
+  left: 0;
+  width: 3rem;
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+  border-right: 1px solid #334155;
+  padding-right: 0.75rem;
+  user-select: none;
+  background-color: #0f172a;
+  z-index: 10;
+}
+
+/* Copy button */
+.copy-btn {
+  position: sticky;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 30;
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  border: none;
+  display: block;
+  margin-left: auto;
+  margin-bottom: 0.5rem;
+}
+
+.copy-btn:hover {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.copy-btn.copied {
+  color: #22c55e;
+}
+
+pre:hover .copy-btn,
+.prose pre:hover .copy-btn {
+  opacity: 1;
+}
+
+/* Scrollbar */
+pre::-webkit-scrollbar,
+.prose pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+pre::-webkit-scrollbar-track,
+.prose pre::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+pre::-webkit-scrollbar-thumb,
+.prose pre::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+}
+
+pre::-webkit-scrollbar-thumb:hover,
+.prose pre::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Hiệu ứng khi hover vào dòng code */
+pre code .line:hover,
+.prose pre code .line:hover {
+  background: #1e293b;
+}
+
+/* Màu sắc highlight.js (Đã có của bạn, chỉnh lại cho tươi hơn) */
+.hljs-comment {
+  color: #64748b;
+  font-style: italic;
+}
+
+.hljs-keyword {
+  color: #f472b6;
+  font-weight: bold;
+}
+
+.hljs-string {
+  color: #4ade80;
+}
+
+.hljs-function {
+  color: #60a5fa;
+}
+
+.hljs-number {
+  color: #fbbf24;
+}
 
 /* Ép thẻ H1 to và đậm */
-.prose h1, .tiptap h1 {
-  font-size: 2.25rem !important; /* Giảm từ 3rem xuống 2.25rem */
+.prose h1,
+.tiptap h1 {
+  font-size: 2.25rem !important;
+  /* Giảm từ 3rem xuống 2.25rem */
   font-weight: 800 !important;
   line-height: 1.2 !important;
-  margin-top: 0.5rem !important; /* Giảm khoảng cách trên */
+  margin-top: 0.5rem !important;
+  /* Giảm khoảng cách trên */
   margin-bottom: 1rem !important;
-  color: #0f172a !important; /* Màu slate-900 cho sang */
+  color: #0f172a !important;
+  /* Màu slate-900 cho sang */
 }
 
 /* Ép thẻ H2 */
-.prose h2, .tiptap h2 {
-  font-size: 1.5rem !important; /* Kích thước vừa phải */
+.prose h2,
+.tiptap h2 {
+  font-size: 1.5rem !important;
+  /* Kích thước vừa phải */
   font-weight: 700 !important;
-  margin-top: 1rem !important; /* Giảm đáng kể khoảng cách phía trên */
+  margin-top: 1rem !important;
+  /* Giảm đáng kể khoảng cách phía trên */
   margin-bottom: 0.5rem !important;
   color: #1e293b !important;
 }
 
 /* Làm cho danh sách có dấu chấm */
-.prose ul, .tiptap ul {
+.prose ul,
+.tiptap ul {
   list-style-type: disc !important;
   padding-left: 1.5rem !important;
   margin-bottom: 1rem !important;
 }
 
 /* Tùy chỉnh thêm để văn bản thường (Paragraph) không dính vào nhau */
-.prose p, .tiptap p {
+.prose p,
+.tiptap p {
   margin-top: 0.5rem !important;
   margin-bottom: 0.5rem !important;
   line-height: 1.6;
@@ -84,6 +228,7 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -94,8 +239,10 @@ body {
   max-width: 100%;
   height: auto;
   display: block;
-  margin: 1.5rem auto; /* Căn giữa ảnh và tạo khoảng cách */
-  border-radius: 0.75rem; /* Bo góc ảnh cho đẹp giống editor */
+  margin: 1.5rem auto;
+  /* Căn giữa ảnh và tạo khoảng cách */
+  border-radius: 0.75rem;
+  /* Bo góc ảnh cho đẹp giống editor */
 }
 
 /* Fix lỗi nếu ảnh bị resize quá nhỏ trong database */
@@ -105,10 +252,17 @@ body {
 
 /* Style cho Quote (Trích dẫn) - Ép kiểu để ghi đè Tailwind Typography */
 .prose blockquote {
-  border-left: 4px solid #f97316 !important; /* Màu cam nổi bật giống Editor */
+  border-left: 4px solid #f97316 !important;
+  /* Màu cam nổi bật giống Editor */
   padding-left: 1rem !important;
   font-style: italic !important;
   color: #4b5563 !important;
   margin: 1.5rem 0 !important;
-  quotes: none !important; /* Bỏ dấu ngoặc kép mặc định của prose */
+  quotes: none !important;
+  /* Bỏ dấu ngoặc kép mặc định của prose */
+}
+
+/* 1. Khung chứa tổng (Toaster) */
+[data-sonner-toaster] {
+  z-index: 99999 !important;
 }
