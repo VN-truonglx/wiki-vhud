@@ -2,19 +2,17 @@
 import { usePathname } from 'next/navigation';
 import Search from '@/components/Search';
 import Link from 'next/link';
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { useSession, signOut } from "next-auth/react"; // Import hook của NextAuth
-import { LogOut, User as UserIcon } from "lucide-react";
+import { useState, useEffect, Fragment } from 'react';
+import { useSession, signOut } from "next-auth/react";
+import { Menu, Transition } from "@headlessui/react"; // Import Headless UI
+import { LogOut, User as UserIcon, ChevronDown, Settings } from "lucide-react"; // Thêm icon cần thiết
 
 export default function Navbar() {
   const pathname = usePathname();
   const [showPopup, setShowPopup] = useState(false);
   
-  // Lấy dữ liệu phiên đăng nhập thực tế
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
-
   const isEditPage = pathname?.includes('/post/edit');
 
   const handleCreateClick = (e: React.MouseEvent) => {
@@ -25,10 +23,10 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-  if (isLoggedIn) {
-    setShowPopup(false); // Nếu đã login thành công thì không bao giờ hiện popup
-  }
-}, [isLoggedIn]);
+    if (isLoggedIn) {
+      setShowPopup(false);
+    }
+  }, [isLoggedIn]);
 
   return (
     <>
@@ -49,7 +47,6 @@ export default function Navbar() {
 
             {/* Khối User & Hành động */}
             <div className="flex items-center gap-4">
-              {/* Nút tạo bài viết (chỉ hiện popup nếu chưa login) */}
               <Link 
                 href="/create" 
                 onClick={handleCreateClick}
@@ -58,32 +55,72 @@ export default function Navbar() {
                 + Tạo bài viết 
               </Link>
 
-              {/* Hiển thị Thông tin User sau khi đăng nhập */}
               {isLoggedIn ? (
-                <div className="flex items-center gap-2 border-l pl-3 border-slate-200">
-                  <div className="flex flex-col items-end hidden sm:flex">
-                    <span className="text-sm font-bold text-slate-800 leading-none">
-                      {session?.user?.name || "Đồng nghiệp <3"}
-                    </span>
-                    <span className="text-[11px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">
-                      {(session?.user as any)?.role || "USER"}
-                    </span>
-                  </div>
-                  
-                  {/* Avatar tròn với chữ cái đầu của tên */}
-                  <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white">
-                    {session?.user?.name ? session.user.name[0].toUpperCase() : <UserIcon size={16}/>}
-                  </div>
+                /* --- DROPDOWN MENU VỚI HEADLESS UI --- */
+                <Menu as="div" className="relative inline-block text-left border-l pl-3 border-slate-200">
+                  <Menu.Button className="flex items-center gap-2 hover:bg-slate-100/50 p-1 pr-2 rounded-full transition-all outline-none group">
+                    <div className="flex flex-col items-end hidden sm:flex">
+                      <span className="text-sm font-bold text-slate-800 leading-none">
+                        {session?.user?.name || "Đồng nghiệp <3"}
+                      </span>
+                      <span className="text-[11px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">
+                        {(session?.user as any)?.role || "USER"}
+                      </span>
+                    </div>
+                    
+                    {/* Avatar */}
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white group-hover:scale-105 transition-transform">
+                      {session?.user?.name ? session.user.name[0].toUpperCase() : <UserIcon size={16}/>}
+                    </div>
 
-                  {/* Nút Đăng xuất */}
-                  <button 
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                    title="Đăng xuất"
+                    {/* Icon mũi tên thay cho nút Logout cũ */}
+                    <ChevronDown size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                  </Menu.Button>
+
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
                   >
-                    <LogOut size={18} />
-                  </button>
-                </div>
+                    <Menu.Items className="absolute right-0 mt-3 w-56 origin-top-right divide-y divide-slate-100 rounded-[1rem] bg-white shadow-2xl focus:outline-none p-2 z-50">
+                      <div className="px-1 py-1">
+                        <Menu.Item>
+                          {({ active }) => (
+                            <Link
+                              href="/profile"
+                              className={`${
+                                active ? "bg-blue-50 text-blue-600" : "text-slate-700"
+                              } group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition-colors`}
+                            >
+                              <UserIcon size={18} strokeWidth={2.5} />
+                              Quản lý cá nhân
+                            </Link>
+                          )}
+                        </Menu.Item>
+                      </div>
+
+                      <div className="px-1 py-1">
+                        <Menu.Item>
+                          {({ active }) => (
+                            <button
+                              onClick={() => signOut({ callbackUrl: '/' })}
+                              className={`${
+                                active ? "bg-red-50 text-red-600" : "text-slate-600"
+                              } group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition-colors`}
+                            >
+                              <LogOut size={18} strokeWidth={2.5} />
+                              Đăng xuất
+                            </button>
+                          )}
+                        </Menu.Item>
+                      </div>
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
               ) : (
                 <Link 
                   href="/login" 
@@ -97,7 +134,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* POPUP THÔNG BÁO (Giữ nguyên logic cũ của bạn) */}
+      {/* POPUP THÔNG BÁO */}
       {showPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center animate-in fade-in zoom-in duration-300">

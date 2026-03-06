@@ -2,7 +2,6 @@
 import { authOptions } from "app/api/auth/[...nextauth]/route";
 import { prisma } from "./db"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next";
 
 //hàm tạo bài viết
@@ -124,5 +123,39 @@ export async function deletePost(id: number) {
   // 4. Nếu hợp lệ -> Thực hiện xóa (hoặc đánh dấu xóa mềm deletedAt)
   return await prisma.post.delete({
     where: { id },
+  });
+}
+
+// 1. Cập nhật Profile (Tên & Mật khẩu)
+export async function updateProfile(userId: number, formData: FormData) {
+  try {
+    const name = formData.get("name") as string;
+    const password = formData.get("password") as string;
+
+    const data: any = { name };
+    if (password && password.length > 0) {
+      data.password = await password;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Không thể cập nhật thông tin" };
+  }
+}
+
+// 2. Lấy danh sách bài viết của tôi (trừ bài đã xóa)
+export async function getMyPosts(userId: number) {
+  return await prisma.post.findMany({
+    where: {
+      authorId: userId,
+      deletedAt: null
+    },
+    orderBy: { createdAt: 'desc' }
   });
 }
