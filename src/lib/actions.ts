@@ -1,7 +1,7 @@
-"use server"
+"use server";
 import { authOptions } from "app/api/auth/[...nextauth]/route";
-import { prisma } from "./db"
-import { revalidatePath } from "next/cache"
+import { prisma } from "./db";
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth/next";
 
 //hàm tạo bài viết
@@ -35,14 +35,14 @@ export async function createPost(formData: FormData) {
         content: formData.get("content") as string,
         authorId: authorId,
         thumbnail: "/default-thumbnail.png",
-        hashtag: formData.get("hashtag") as string || "#WIKI",
+        hashtag: (formData.get("hashtag") as string) || "#WIKI",
       },
     });
     revalidatePath("/"); // Tự động cập nhật trang chủ sau khi tạo bài viết mới
     return { success: true };
   } catch (error) {
     console.error("Lỗi Prisma:", error);
-    throw new Error("Không thể tạo bài viết");
+    return error;
   }
 }
 
@@ -62,7 +62,9 @@ export async function updatePost(id: number, formData: FormData) {
     throw new Error("Unauthorized");
   }
 
-  const isAuthorized = String(post.authorId) === String(session.user.id) || session.user.role === "ADMIN";
+  const isAuthorized =
+    String(post.authorId) === String(session.user.id) ||
+    session.user.role === "ADMIN";
   if (!isAuthorized) throw new Error("Unauthorized");
 
   // Lấy ảnh thumbnail từ content, tương tự như hàm createPost
@@ -107,7 +109,7 @@ export async function deletePost(id: number) {
   // 2. Tìm bài viết để lấy thông tin tác giả
   const post = await prisma.post.findUnique({
     where: { id },
-    select: { authorId: true }
+    select: { authorId: true },
   });
 
   if (!post) throw new Error("Bài viết không tồn tại");
@@ -154,8 +156,8 @@ export async function getMyPosts(userId: number) {
   return await prisma.post.findMany({
     where: {
       authorId: userId,
-      deletedAt: null
+      deletedAt: null,
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: "desc" },
   });
 }

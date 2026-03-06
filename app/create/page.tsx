@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPost } from "@/lib/actions";
 import TiptapEditor from "@/components/TiptapEditor";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react"; 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/dist/client/components/navigation";
 
 type Access = "PUBLIC" | "INTERNAL";
@@ -22,13 +22,14 @@ function PublishSplitButton({
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   const accessLabel = useMemo(
-    () => (access === "PUBLIC" ? "Công khai (Mọi người)" : "Nội bộ (Chỉ thành viên)"),
-    [access]
+    () =>
+      access === "PUBLIC" ? "Công khai (Mọi người)" : "Nội bộ (Chỉ thành viên)",
+    [access],
   );
 
   const tooltipText = useMemo(
     () => `Bài sẽ được đăng ở chế độ ${accessLabel}`,
-    [accessLabel]
+    [accessLabel],
   );
 
   useEffect(() => {
@@ -115,13 +116,20 @@ function PublishSplitButton({
                 setAccess("PUBLIC");
                 setOpen(false);
               }}
-              className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 ${access === "PUBLIC" ? "bg-orange-50" : ""
-                }`}
+              className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 ${
+                access === "PUBLIC" ? "bg-orange-50" : ""
+              }`}
             >
-              <span className={`mt-1 h-2.5 w-2.5 rounded-full ${access === "PUBLIC" ? "bg-orange-500" : "bg-slate-300"}`} />
+              <span
+                className={`mt-1 h-2.5 w-2.5 rounded-full ${access === "PUBLIC" ? "bg-orange-500" : "bg-slate-300"}`}
+              />
               <div>
-                <div className="font-semibold text-slate-800">Công khai (Mọi người)</div>
-                <div className="text-sm text-slate-500">Ai cũng có thể xem bài viết.</div>
+                <div className="font-semibold text-slate-800">
+                  Công khai (Mọi người)
+                </div>
+                <div className="text-sm text-slate-500">
+                  Ai cũng có thể xem bài viết.
+                </div>
               </div>
             </button>
 
@@ -132,13 +140,20 @@ function PublishSplitButton({
                 setAccess("INTERNAL");
                 setOpen(false);
               }}
-              className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 ${access === "INTERNAL" ? "bg-orange-50" : ""
-                }`}
+              className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 ${
+                access === "INTERNAL" ? "bg-orange-50" : ""
+              }`}
             >
-              <span className={`mt-1 h-2.5 w-2.5 rounded-full ${access === "INTERNAL" ? "bg-orange-500" : "bg-slate-300"}`} />
+              <span
+                className={`mt-1 h-2.5 w-2.5 rounded-full ${access === "INTERNAL" ? "bg-orange-500" : "bg-slate-300"}`}
+              />
               <div>
-                <div className="font-semibold text-slate-800">Nội bộ (Chỉ thành viên)</div>
-                <div className="text-sm text-slate-500">Chỉ thành viên đăng nhập mới xem được.</div>
+                <div className="font-semibold text-slate-800">
+                  Nội bộ (Chỉ thành viên)
+                </div>
+                <div className="text-sm text-slate-500">
+                  Chỉ thành viên đăng nhập mới xem được.
+                </div>
               </div>
             </button>
           </div>
@@ -147,7 +162,6 @@ function PublishSplitButton({
         {/* Hidden input để submit cùng form */}
         <input type="hidden" name="access" value={access} />
       </div>
-
     </div>
   );
 }
@@ -171,19 +185,19 @@ export default function CreatePostPage() {
     if (!content || content === "<p></p>") {
       toast.warning("Chưa có nội dung", {
         description: "Vui lòng nhập nội dung bài viết",
-        style: { borderRadius: '1.5rem' },
+        style: { borderRadius: "1.5rem" },
       });
       return;
     }
 
     try {
-      const result = await createPost(formData);
+      const result: any = await createPost(formData);
 
-      if (result?.success) {
+      if (result.success) {
         // 1. Hiển thị thông báo thành công
         toast.success("Đăng bài thành công!", {
           description: "Bài viết của bạn đã được lưu vào hệ thống.",
-          style: { borderRadius: '0.5rem' },
+          style: { borderRadius: "0.5rem" },
         });
 
         // 2. Đợi 1.5 - 2 giây để người dùng kịp nhìn thông báo rồi mới chuyển trang
@@ -191,7 +205,6 @@ export default function CreatePostPage() {
           router.push("/");
           router.refresh();
         }, 1500);
-
       } else {
         toast.error("Lỗi: " + result?.error);
       }
@@ -214,7 +227,9 @@ export default function CreatePostPage() {
         />
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-400 font-bold uppercase text-xs tracking-wider">Tác giả:</span>
+          <span className="text-slate-400 font-bold uppercase text-xs tracking-wider">
+            Tác giả:
+          </span>
           <input
             type="text"
             name="author"
@@ -237,7 +252,11 @@ export default function CreatePostPage() {
 
         {/* Split publish button */}
         <div className="pt-4 flex">
-          <PublishSplitButton access={access} setAccess={setAccess} isSubmitting={isSubmitting} />
+          <PublishSplitButton
+            access={access}
+            setAccess={setAccess}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </form>
     </main>
