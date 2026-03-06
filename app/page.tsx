@@ -10,7 +10,6 @@ export default async function Home({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || "";
 
@@ -39,12 +38,11 @@ export default async function Home({
           ],
         },
       ],
-
     },
     include: {
-      author: true
+      author: true,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   return (
@@ -54,9 +52,14 @@ export default async function Home({
         {/* Điểm nhấn màu sắc mờ ảo phía sau */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-orange-50/50 to-transparent -z-10 rounded-full blur-3xl opacity-70"></div>
 
-        <span className="text-orange-500 font-bold tracking-[0.3em] text-xls uppercase mb-4 block">Trang thông tin</span>
+        <span className="text-orange-500 font-bold tracking-[0.3em] text-xls uppercase mb-4 block">
+          Trang thông tin
+        </span>
         <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
-          Wiki <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-orange-500">VHUD</span>
+          Wiki{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-orange-500">
+            VHUD
+          </span>
         </h1>
         <p className="text-slate-500 max-w-xl mx-auto text-lg leading-relaxed py-3">
           Tổng hợp tất cả kiến thức vận hành các hệ thống tại EVF
@@ -66,7 +69,9 @@ export default async function Home({
       {/* 4. Hiển thị thông báo khi đang ở chế độ tìm kiếm */}
       {query && (
         <p className="mb-6 text-slate-500 bg-blue-50 p-4 rounded-xl border border-blue-100">
-          🔍 Tìm thấy <span className="font-bold text-blue-600">{posts.length}</span> kết quả cho:
+          🔍 Tìm thấy{" "}
+          <span className="font-bold text-blue-600">{posts.length}</span> kết
+          quả cho:
           <span className="italic ml-1">"{query}"</span>
         </p>
       )}
@@ -76,14 +81,19 @@ export default async function Home({
         {posts.length === 0 ? (
           <div className="col-span-full text-center py-20 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-slate-200">
             <p className="text-slate-400 text-lg">
-              {query ? "Không tìm thấy kết quả phù hợp." : "Chưa có bài viết nào. Hãy là người đầu tiên đóng góp!"}
+              {query
+                ? "Không tìm thấy kết quả phù hợp."
+                : "Chưa có bài viết nào. Hãy là người đầu tiên đóng góp!"}
             </p>
           </div>
         ) : (
-          posts.map((post) => (
-            <Link href={`/post/${post.id}`} key={post.id} className="group flex">
+          posts.map((post: any) => (
+            <Link
+              href={`/post/${post.id}`}
+              key={post.id}
+              className="group flex"
+            >
               <article className="bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 flex flex-col w-full transform hover:-translate-y-2">
-
                 {/* 1. Thumbnail Area */}
                 <div className="relative aspect-[16/9] overflow-hidden">
                   <PostImage src={post.thumbnail} title={post.title} />
@@ -93,7 +103,6 @@ export default async function Home({
 
                 {/* 2. Content Area */}
                 <div className="p-7 flex-1 flex flex-col">
-
                   {/* 2.1 Hashtag (Tasty Style) */}
                   <div className="mb-4">
                     <span className="text-[12px] font-normal text-blue-400">
@@ -118,10 +127,10 @@ export default async function Home({
                         {post.author?.name || "Ban VHUD"}
                       </span>
                       <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                        {new Date(post.createdAt).toLocaleDateString('vi-VN', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
+                        {new Date(post.createdAt).toLocaleDateString("vi-VN", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
                         })}
                       </span>
                     </div>

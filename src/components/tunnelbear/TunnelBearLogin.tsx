@@ -15,7 +15,7 @@ export default function TunnelBearLogin() {
 
   const { watchBearImages, hideBearImages, peakBearImages } = useBearImages();
 
-  const { img, setFocus, focus, isAnimating } = useBearAnimation({
+  const { img, setFocus, focus } = useBearAnimation({
     watchBearImages,
     hideBearImages,
     peakBearImages,
@@ -52,8 +52,17 @@ export default function TunnelBearLogin() {
   return (
     <div className="w-full max-w-sm mx-auto overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-2xl">
       <div className="bg-blue-600 text-white py-8 flex flex-col items-center gap-3">
-        <img src={img} alt="TunnelBear" width={150} height={150} draggable={false} className="select-none" />
-        <div className="text-lg font-semibold text-white/95">Chào mừng bạn đến với Wiki VHUD</div>
+        <img
+          src={img}
+          alt="TunnelBear"
+          width={150}
+          height={150}
+          draggable={false}
+          className="select-none"
+        />
+        <div className="text-lg font-semibold text-white/95">
+          Chào mừng bạn đến với Wiki VHUD
+        </div>
       </div>
 
       {/* 4. Thay đổi onSubmit từ preventDefault thành handleLogin */}
@@ -66,14 +75,18 @@ export default function TunnelBearLogin() {
             required
             value={values.email}
             onFocus={() => setFocus("EMAIL")}
-            onChange={(e) => setValues((p) => ({ ...p, email: e.target.value }))}
+            onChange={(e) =>
+              setValues((p) => ({ ...p, email: e.target.value }))
+            }
             className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-            placeholder="your_email@evnfc.vn" 
+            placeholder="your_email@evnfc.vn"
           />
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-semibold text-slate-600">Mật khẩu</label>
+          <label className="text-sm font-semibold text-slate-600">
+            Mật khẩu
+          </label>
           <div className="flex gap-2">
             <input
               ref={passRef}
@@ -83,7 +96,9 @@ export default function TunnelBearLogin() {
               value={values.password}
               onPointerDown={() => setFocus("PASSWORD")}
               onFocus={() => setFocus("PASSWORD")}
-              onChange={(e) => setValues((p) => ({ ...p, password: e.target.value }))}
+              onChange={(e) =>
+                setValues((p) => ({ ...p, password: e.target.value }))
+              }
               className="flex-1 rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               placeholder="••••••••"
             />
@@ -95,7 +110,7 @@ export default function TunnelBearLogin() {
                 setFocus("PASSWORD");
                 setShowPassword((v) => !v);
               }}
-              className={`shrink-0 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 ${isAnimating ? "opacity-70" : ""}`}
+              className={`shrink-0 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50`}
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>

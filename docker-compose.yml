@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  wiki-vhud:
+    build: .
+    image: wiki-vhud/node:v1
+    container_name: wiki-vhud
+    ports:
+      - "5555:5555"
+    restart: unless-stopped
