@@ -5,8 +5,14 @@ import { useSession } from "next-auth/react";
 import { updatePost } from "@/lib/actions";
 import TiptapEditor from "@/components/TiptapEditor";
 import { toast } from 'sonner';
+import { ChevronDown } from "lucide-react";
 
 type Access = "PUBLIC" | "INTERNAL";
+
+const ACCESS_OPTIONS: { value: Access; label: string; desc: string }[] = [
+  { value: "PUBLIC", label: "Công khai", desc: "Ai cũng có thể xem bài viết." },
+  { value: "INTERNAL", label: "Nội bộ", desc: "Chỉ thành viên đăng nhập mới xem được." },
+];
 
 export default function EditPostPage() {
   const params = useParams();
@@ -18,7 +24,19 @@ export default function EditPostPage() {
   const [access, setAccess] = useState<Access>("PUBLIC");
   const [isChecking, setIsChecking] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const contentRef = useRef('');
+  const accessRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (accessRef.current && !accessRef.current.contains(e.target as Node)) {
+        setAccessOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
 
   // Flag quan trọng: Ngăn chặn fetch lặp vô tận gây treo máy
   const fetchedRef = useRef(false);
@@ -138,19 +156,56 @@ export default function EditPostPage() {
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-500 uppercase mb-2">Chế độ</label>
-            <select
-              value={access}
-              onChange={(e) => setAccess(e.target.value as Access)}
-              className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="PUBLIC">Công khai</option>
-              <option value="INTERNAL">Nội bộ</option>
-            </select>
+            <div ref={accessRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setAccessOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={accessOpen}
+                className="w-full flex items-center justify-between px-4 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 hover:border-blue-300 transition-colors"
+              >
+                <span className="font-medium text-slate-700">
+                  {ACCESS_OPTIONS.find((o) => o.value === access)?.label}
+                </span>
+                <ChevronDown
+                  size={18}
+                  className={`text-slate-400 transition-transform ${accessOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {accessOpen && (
+                <div
+                  role="menu"
+                  className="absolute z-[60] mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+                >
+                  {ACCESS_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setAccess(opt.value);
+                        setAccessOpen(false);
+                      }}
+                      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 ${access === opt.value ? "bg-blue-50" : ""}`}
+                    >
+                      <span
+                        className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${access === opt.value ? "bg-blue-500" : "bg-slate-300"}`}
+                      />
+                      <div>
+                        <div className="font-semibold text-slate-800">{opt.label}</div>
+                        <div className="text-xs text-slate-500">{opt.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Nội dung</label>
+          <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Nội dung</label>
           {/* Truyền content vào Editor */}
           {post && (
             <TiptapEditor

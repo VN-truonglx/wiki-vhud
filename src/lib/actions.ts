@@ -128,20 +128,14 @@ export async function deletePost(id: number) {
   });
 }
 
-// 1. Cập nhật Profile (Tên & Mật khẩu)
+// 1. Cập nhật Profile (Tên)
 export async function updateProfile(userId: number, formData: FormData) {
   try {
     const name = formData.get("name") as string;
-    const password = formData.get("password") as string;
-
-    const data: any = { name };
-    if (password && password.length > 0) {
-      data.password = await password;
-    }
 
     await prisma.user.update({
       where: { id: userId },
-      data,
+      data: { name },
     });
 
     revalidatePath("/profile");

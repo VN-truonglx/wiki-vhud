@@ -25,12 +25,14 @@ declare module "next-auth/jwt" {
   }
 }
 
+const AD_EMAIL_DOMAIN = "evnfc.vn";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email hoặc Username", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
@@ -38,18 +40,39 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Truy vấn user từ Database
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        // Xác thực qua API nội bộ (hệ thống này đã xác thực với AD)
+        let authMessage: string | undefined;
+        try {
+          const res = await fetch(process.env.AD_AUTH_API_URL as string, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: credentials.email,
+              password: credentials.password,
+            }),
+          });
+          const body = await res.json();
+          authMessage = body?.message;
+        } catch (error) {
+          console.error("AD auth API error:", error);
+          return null;
+        }
+
+        if (authMessage !== "Đăng nhập thành công") return null;
+
+        // Chuẩn hoá định danh về dạng email đầy đủ, vì API AD chấp nhận cả
+        // username thuần (vd "vanhanh") lẫn email (vd "vanhanh@evnfc.vn") -
+        // nếu không chuẩn hoá, mỗi cách gõ sẽ tạo ra 2 record khác nhau trong DB.
+        const normalizedEmail = credentials.email.includes("@")
+          ? credentials.email
+          : `${credentials.email}@${AD_EMAIL_DOMAIN}`;
+
+        // Xác thực AD thành công - lấy (hoặc tạo mới) record local chỉ để lưu role/tên hiển thị
+        const user = await prisma.user.upsert({
+          where: { email: normalizedEmail },
+          update: {},
+          create: { email: normalizedEmail, role: "PUBLIC" },
         });
-
-        // Nếu không tìm thấy user
-        if (!user) return null;
-
-        //So sánh password - Lưu ý: Trong thực tế, bạn phải hash password và so sánh hash, ko đc lưu trực tiếp
-        const isPasswordCorrect = credentials.password === user.password;
-
-        if (!isPasswordCorrect) return null;
 
         // Trả về object User để đưa vào JWT
         return {

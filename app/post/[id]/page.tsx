@@ -57,9 +57,12 @@ export default async function PostDetailPage({
 
         <header className="mb-7 border-b border-blue-700/20 pb-2">
           <div className="flex items-center gap-2 mb-4">
-            <span className="bg-blue-50 text-blue-600 text-[15px] font-bold px-3 py-1 rounded-full uppercase">
+            <Link
+              href={`/tag/${encodeURIComponent(post.hashtag || "#WIKI_GUIDE")}`}
+              className="bg-blue-50 text-blue-600 text-[15px] font-bold px-3 py-1 rounded-full uppercase hover:bg-blue-100 transition-colors"
+            >
               {post.hashtag || "#WIKI_GUIDE"}
-            </span>
+            </Link>
           </div>
           
           <h1 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">

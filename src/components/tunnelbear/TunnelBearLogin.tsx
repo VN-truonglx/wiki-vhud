@@ -68,10 +68,10 @@ export default function TunnelBearLogin() {
       {/* 4. Thay đổi onSubmit từ preventDefault thành handleLogin */}
       <form className="p-8 space-y-4" onSubmit={handleLogin}>
         <div className="space-y-1">
-          <label className="text-sm font-semibold text-slate-600">Email</label>
+          <label className="text-sm font-semibold text-slate-600">Email hoặc Username</label>
           <input
             name="email"
-            type="email"
+            type="text"
             required
             value={values.email}
             onFocus={() => setFocus("EMAIL")}
@@ -79,7 +79,7 @@ export default function TunnelBearLogin() {
               setValues((p) => ({ ...p, email: e.target.value }))
             }
             className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-            placeholder="your_email@evnfc.vn"
+            placeholder="Email hoặc username AD"
           />
         </div>
 

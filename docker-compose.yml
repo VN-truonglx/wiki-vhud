@@ -3,8 +3,18 @@ version: "3.7"
 services:
   wiki-vhud:
     build: .
+    volumes:
+      - .:/wiki-vhud
+      - /wiki-vhud/node_modules
+      - /wiki-vhud/.next
+      - wiki-vhud-data:/wiki-vhud/data
     image: wiki-vhud/node:v1
     container_name: wiki-vhud
+    environment:
+      - DATABASE_URL=file:/wiki-vhud/data/prod.db
     ports:
       - "5555:5555"
     restart: unless-stopped
+
+volumes:
+  wiki-vhud-data:

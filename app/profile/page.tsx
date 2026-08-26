@@ -1,6 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { updateProfile, getMyPosts } from "@/lib/actions";
 import { toast } from "sonner"; // Dùng sonner để đồng bộ giao diện [cite: 3]
 type Post = {
@@ -57,16 +58,6 @@ export default function ProfilePage() {
               className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div>
-            <label className="block text-sm font-bold text-slate-500 uppercase mb-1">
-              Mật khẩu mới (để trống nếu không đổi)
-            </label>
-            <input
-              name="password"
-              type="password"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
           <button
             disabled={isPending}
             className="bg-blue-600 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-700 transition-all disabled:bg-slate-300"
@@ -91,7 +82,12 @@ export default function ProfilePage() {
                 <h3 className="font-bold text-slate-700">
                   {post.title || "Không tiêu đề"}
                 </h3>
-                <p className="text-xs text-slate-400">{post.hashtag}</p>
+                <Link
+                  href={`/tag/${encodeURIComponent(post.hashtag || "")}`}
+                  className="text-xs text-slate-400 hover:text-blue-500 hover:underline"
+                >
+                  {post.hashtag}
+                </Link>
               </div>
               <div className="flex gap-2">
                 <button
