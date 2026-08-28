@@ -36,8 +36,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   width: 'fit-content',
                   borderRadius: '1.0rem',
                   padding: '16px 20px',
-                  duration: 2500,
                 },
+                duration: 2500
               }
             }
           />

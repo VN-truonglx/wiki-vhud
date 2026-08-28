@@ -58,7 +58,7 @@ export default async function Home({
     .filter((hashtag): hashtag is string => !!hashtag);
 
   return (
-    <main className="max-w-[1440px] mx-auto px-4 py-10">
+    <main className="max-w-[1440px] mx-auto px-4 py-4">
       {/* Header Section */}
       <section className="relative py-12 mb-12 text-center overflow-hidden">
         {/* Điểm nhấn màu sắc mờ ảo phía sau */}

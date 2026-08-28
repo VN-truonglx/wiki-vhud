@@ -40,7 +40,7 @@ export default function PostsGrid({
         <div className="flex items-center gap-1 bg-slate-100 rounded-full p-1">
           <button
             type="button"
-            aria-label="Hiển thị dạng lưới"
+            title="Hiển thị dạng lưới"
             onClick={() => changeView("grid")}
             className={`p-2 rounded-full transition-colors ${
               view === "grid"
@@ -52,7 +52,7 @@ export default function PostsGrid({
           </button>
           <button
             type="button"
-            aria-label="Hiển thị dạng danh sách"
+            title="Hiển thị dạng danh sách"
             onClick={() => changeView("list")}
             className={`p-2 rounded-full transition-colors ${
               view === "list"
