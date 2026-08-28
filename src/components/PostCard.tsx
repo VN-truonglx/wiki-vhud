@@ -10,7 +10,47 @@ type PostCardData = {
   author: { name: string | null } | null;
 };
 
-export default function PostCard({ post }: { post: PostCardData }) {
+export default function PostCard({
+  post,
+  view = "grid",
+}: {
+  post: PostCardData;
+  view?: "grid" | "list";
+}) {
+  if (view === "list") {
+    return (
+      <Link href={`/post/${post.id}`} className="group flex">
+        <article className="bg-white rounded-[1.75rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 flex w-full">
+          <div className="relative w-40 sm:w-64 flex-shrink-0 overflow-hidden">
+            <PostImage src={post.thumbnail} title={post.title} />
+          </div>
+
+          <div className="p-6 flex-1 flex flex-col justify-center min-w-0">
+            <span className="text-[12px] font-normal text-blue-400 mb-2">
+              {post.hashtag}
+            </span>
+            <h2 className="text-xl font-bold text-slate-800 group-hover:text-orange-500 transition-colors line-clamp-2 leading-tight mb-2">
+              {post.title}
+            </h2>
+            <div className="flex items-center gap-3 text-sm text-slate-400">
+              <span className="font-bold text-slate-600">
+                {post.author?.name || "Ban VHUD"}
+              </span>
+              <span>•</span>
+              <span className="uppercase text-[11px] tracking-wider">
+                {new Date(post.createdAt).toLocaleDateString("vi-VN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          </div>
+        </article>
+      </Link>
+    );
+  }
+
   return (
     <Link href={`/post/${post.id}`} className="group flex">
       <article className="bg-white rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 flex flex-col w-full transform hover:-translate-y-2">
