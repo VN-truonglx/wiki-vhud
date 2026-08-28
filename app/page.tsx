@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/db";
 import { visiblePostsWhere } from "@/lib/posts";
-import PostCard from "@/components/PostCard";
+import PostsGrid from "@/components/PostsGrid";
+import FilterBar from "@/components/FilterBar";
 import { getServerSession } from "next-auth"; // Thêm để lấy session
 import { authOptions } from "app/api/auth/[...nextauth]/route";
 
@@ -8,35 +10,52 @@ import { authOptions } from "app/api/auth/[...nextauth]/route";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; tag?: string }>;
 }) {
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || "";
+  const sort = resolvedParams.sort === "oldest" ? "oldest" : "newest";
+  const tag = resolvedParams.tag || "";
 
   // 1. Lấy phiên đăng nhập phía Server
   const session = await getServerSession(authOptions);
   const isLoggedIn = !!session;
+  const visibleWhere = visiblePostsWhere(isLoggedIn);
 
-  // 3. Truy vấn Prisma (giữ nguyên logic search)
-  const posts = await prisma.post.findMany({
-    where: {
-      deletedAt: null,
-      AND: [
-        {
-          OR: [
-            { title: { contains: query } },
-            { content: { contains: query } },
-            { hashtag: { contains: query } },
-          ],
-        },
-        visiblePostsWhere(isLoggedIn),
-      ],
-    },
-    include: {
-      author: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  // 3. Truy vấn Prisma (giữ nguyên logic search, thêm lọc theo hệ thống + sắp xếp)
+  const [posts, hashtagRows] = await Promise.all([
+    prisma.post.findMany({
+      where: {
+        deletedAt: null,
+        AND: [
+          {
+            OR: [
+              { title: { contains: query } },
+              { content: { contains: query } },
+              { hashtag: { contains: query } },
+            ],
+          },
+          ...(tag ? [{ hashtag: tag }] : []),
+          visibleWhere,
+        ],
+      },
+      include: {
+        author: true,
+      },
+      orderBy: { createdAt: sort === "oldest" ? "asc" : "desc" },
+    }),
+    // Danh sách hệ thống (hashtag) hiện có để làm bộ lọc
+    prisma.post.findMany({
+      where: { deletedAt: null, hashtag: { not: null }, ...visibleWhere },
+      select: { hashtag: true },
+      distinct: ["hashtag"],
+      orderBy: { hashtag: "asc" },
+    }),
+  ]);
+
+  const systems = hashtagRows
+    .map((row) => row.hashtag)
+    .filter((hashtag): hashtag is string => !!hashtag);
 
   return (
     <main className="max-w-[1440px] mx-auto px-4 py-10">
@@ -69,20 +88,20 @@ export default async function Home({
         </p>
       )}
 
-      {/* Posts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {posts.length === 0 ? (
-          <div className="col-span-full text-center py-20 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-slate-200">
-            <p className="text-slate-400 text-lg">
-              {query
-                ? "Không tìm thấy kết quả phù hợp."
-                : "Chưa có bài viết nào. Hãy là người đầu tiên đóng góp!"}
-            </p>
-          </div>
-        ) : (
-          posts.map((post: any) => <PostCard post={post} key={post.id} />)
-        )}
-      </div>
+      {/* Bộ lọc: sắp xếp mới nhất/cũ nhất + lọc theo hệ thống */}
+      <Suspense fallback={null}>
+        <FilterBar systems={systems} currentSort={sort} currentTag={tag} />
+      </Suspense>
+
+      {/* Danh sách bài viết + chuyển đổi hiển thị lưới/danh sách */}
+      <PostsGrid
+        posts={posts}
+        emptyMessage={
+          query || tag
+            ? "Không tìm thấy kết quả phù hợp."
+            : "Chưa có bài viết nào. Hãy là người đầu tiên đóng góp!"
+        }
+      />
     </main>
   );
 }
